@@ -16,25 +16,23 @@
 
 package org.guvnor.m2repo.service;
 
+import org.guvnor.common.services.project.model.GAV;
 import org.guvnor.m2repo.model.JarListPageRow;
 import org.jboss.errai.bus.server.annotations.Remote;
-import org.guvnor.common.services.project.model.GAV;
 import org.uberfire.paging.PageRequest;
 import org.uberfire.paging.PageResponse;
 
 @Remote
 public interface M2RepoService {
 
-    public String getJarName( String path );
+    String getJarName( String path );
 
-    public void deleteJar( String[] path );
+    String loadPOMStringFromJar( String path );
 
-    public String loadPOMStringFromJar( String path );
+    GAV loadGAVFromJar( String path );
 
-    public GAV loadGAVFromJar( String path );
+    PageResponse<JarListPageRow> listJars( PageRequest pageRequest,
+                                           String filters );
 
-    public PageResponse<JarListPageRow> listJars( PageRequest pageRequest,
-                                                  String filters );
-
-    public String getRepositoryURL( String baseURL );
+    String getRepositoryURL( String baseURL );
 }

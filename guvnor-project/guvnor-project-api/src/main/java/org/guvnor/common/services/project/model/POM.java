@@ -26,18 +26,40 @@ public class POM {
 
     private static final String MODEL_VERSION = "4.0.0";
 
+    private GAV parent;
     private GAV gav;
+    private String name;
+    private String description;
+    
+    private boolean multiModule;
 
     private List<Dependency> dependencies = new ArrayList<Dependency>();
     private List<Repository> repositories = new ArrayList<Repository>();
+    private List<String> modules = new ArrayList<String>();
 
     public POM() {
         this.gav = new GAV();
     }
 
+    // Kept this for backwards compatibility
     public POM(GAV gav) {
+        this(null, null, gav);
+    }
+
+    public POM(String name, String description, GAV gav) {
         super();
+        this.name = name;
+        this.description = description;
         this.gav = gav;
+        this.multiModule = false;
+    }
+    
+    public POM(String name, String description, GAV gav, boolean multiModule) {
+        super();
+        this.name = name;
+        this.description = description;
+        this.gav = gav;
+        this.multiModule = multiModule;
     }
 
     public GAV getGav() {
@@ -60,4 +82,47 @@ public class POM {
         return MODEL_VERSION;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName( String name ) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription( String description ) {
+        this.description = description;
+    }
+
+    public GAV getParent() {
+      return parent;
+    }
+
+    public void setParent(GAV parent) {
+      this.parent = parent;
+    }
+
+    public List<String> getModules() {
+      return modules;
+    }
+
+    public void setModules(List<String> modules) {
+      this.modules = modules;
+    }
+
+    public boolean isMultiModule() {
+      return multiModule;
+    }
+
+    public void setMultiModule(boolean multiModule) {
+      this.multiModule = multiModule;
+    }
+
+    public boolean hasParent() {
+        return parent != null;
+    }
 }

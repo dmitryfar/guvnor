@@ -16,47 +16,49 @@
 
 package org.guvnor.m2repo.client.editor;
 
+import com.github.gwtbootstrap.client.ui.Button;
+import com.github.gwtbootstrap.client.ui.Form;
+import com.github.gwtbootstrap.client.ui.TextBox;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.TextBox;
-import org.guvnor.m2repo.client.resources.ImageResources;
+import org.guvnor.m2repo.client.resources.images.M2RepoEditorImageResources;
 import org.guvnor.m2repo.model.HTMLFileManagerFields;
-import org.uberfire.client.common.FormStylePopup;
+import org.uberfire.ext.widgets.common.client.common.popups.FormStylePopup;
 
 public class GAVEditor extends FormStylePopup {
 
-    public GAVEditor(final FormPanel form) {
-        super(ImageResources.INSTANCE.modelLarge(),
+    public GAVEditor( final Form form ) {
+        super( M2RepoEditorImageResources.INSTANCE.modelLarge(),
                "GAV Editor" );
 
-        TextBox groupIDTextBox = new TextBox();        
-        addAttribute( "GroupID:", groupIDTextBox);
-        TextBox artifactIDTextBox = new TextBox();   
-        addAttribute( "ArtifactID:", artifactIDTextBox);
-        TextBox versionID = new TextBox();   
-        addAttribute( "VersionID:", versionID);
-        Button ok = new Button("upload");
-        ok.addClickHandler(new ClickHandler() {
-            public void onClick(ClickEvent event) {
+        TextBox groupIDTextBox = new TextBox();
+        addAttribute( "GroupID:", groupIDTextBox );
+        TextBox artifactIDTextBox = new TextBox();
+        addAttribute( "ArtifactID:", artifactIDTextBox );
+        TextBox versionID = new TextBox();
+        addAttribute( "VersionID:", versionID );
+        Button ok = new Button( "upload" );
+        ok.addClickHandler( new ClickHandler() {
+            public void onClick( ClickEvent event ) {
                 form.reset();
                 HorizontalPanel fields = new HorizontalPanel();
-                fields.add(getHiddenField(HTMLFileManagerFields.GROUP_ID, ""));
-                fields.add(getHiddenField(HTMLFileManagerFields.ARTIFACT_ID, ""));
-                fields.add(getHiddenField(HTMLFileManagerFields.VERSION_ID, ""));
-                form.add(fields);
+                fields.add( getHiddenField( HTMLFileManagerFields.GROUP_ID, "" ) );
+                fields.add( getHiddenField( HTMLFileManagerFields.ARTIFACT_ID, "" ) );
+                fields.add( getHiddenField( HTMLFileManagerFields.VERSION_ID, "" ) );
+                form.add( fields );
                 form.submit();
             }
-        });
-        addAttribute( "", ok);
+        } );
+        addAttribute( "", ok );
     }
-    private TextBox getHiddenField(String name, String value) {
+
+    private TextBox getHiddenField( String name,
+                                    String value ) {
         TextBox t = new TextBox();
-        t.setName(name);
-        t.setText(value);
-        t.setVisible(false);
+        t.setName( name );
+        t.setText( value );
+        t.setVisible( false );
         return t;
     }
- }
+}

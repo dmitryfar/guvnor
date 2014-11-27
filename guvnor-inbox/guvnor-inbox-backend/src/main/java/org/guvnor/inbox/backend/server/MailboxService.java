@@ -17,29 +17,20 @@ package org.guvnor.inbox.backend.server;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import org.kie.commons.io.FileSystemType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.naming.InitialContext;
 
-import org.kie.commons.io.IOService;
-import org.kie.commons.java.nio.file.FileSystem;
-import org.guvnor.inbox.backend.server.InboxServiceImpl.InboxEntry;
-import org.guvnor.inbox.service.InboxService;
-
-import static org.kie.commons.io.FileSystemType.Bootstrap.BOOTSTRAP_INSTANCE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.uberfire.io.IOService;
+import org.uberfire.java.nio.file.FileSystem;
+import org.uberfire.java.nio.file.Path;
 
 /**
  * This service the "delivery" of messages to users inboxes for events.
@@ -50,32 +41,24 @@ public class MailboxService {
 
     private static final Logger log = LoggerFactory.getLogger( MailboxService.class );
 
-    private ExecutorService executor = null;
+    private MailboxProcessOutgoingExecutorManager executorManager = null;
     public static final String MAIL_MAN = "mailman";
 
     @Inject
-    private InboxService inboxService;
+    private InboxBackend inboxBackend;
 
     @Inject
-    @Named("ioStrategy")
+    @Named("configIO")
     private IOService ioService;
 
-    private org.kie.commons.java.nio.file.Path bootstrapRoot = null;
+    @Inject
+    @Named("systemFS")
+    private FileSystem bootstrapFS;
 
     @PostConstruct
     public void setup() {
-        final Iterator<FileSystem> fsIterator = ioService.getFileSystems( BOOTSTRAP_INSTANCE ).iterator();
-        if ( fsIterator.hasNext() ) {
-            final FileSystem bootstrap = fsIterator.next();
-            final Iterator<org.kie.commons.java.nio.file.Path> rootIterator = bootstrap.getRootDirectories().iterator();
-            if ( rootIterator.hasNext() ) {
-                this.bootstrapRoot = rootIterator.next();
-            }
-        }
-
-        executor = Executors.newSingleThreadExecutor();
         log.info( "mailbox service is up" );
-        wakeUp();
+        processOutgoing();
     }
 
     @PreDestroy
@@ -83,31 +66,21 @@ public class MailboxService {
         stopExecutor();
     }
 
-    public void stopExecutor() {
-        log.info( "Shutting down mailbox service" );
-        executor.shutdown();
-
-        try {
-            if ( !executor.awaitTermination( 10, TimeUnit.SECONDS ) ) {
-                executor.shutdownNow();
-                if ( !executor.awaitTermination( 10, TimeUnit.SECONDS ) ) {
-                    System.err.println( "executor did not terminate" );
-                }
-            }
-        } catch ( InterruptedException e ) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
+    private void stopExecutor() {
+        if ( executorManager != null && !isEjb( executorManager, MailboxProcessOutgoingExecutorManager.class ) ) {
+            log.info( "Shutting down mailbox service" );
+            executorManager.shutdown();
+            log.info( "Mailbox service is shutdown." );
         }
-        log.info( "Mailbox service is shutdown." );
     }
 
-    public void wakeUp() {
-        log.debug( "Waking up" );
-        executor.execute( new Runnable() {
-            public void run() {
-                processOutgoing();
-            }
-        } );
+    private boolean isEjb( Object o,
+                           Class<?> expected ) {
+        if ( o.getClass() != expected ) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -118,54 +91,78 @@ public class MailboxService {
      * Process any waiting messages
      */
     void processOutgoing() {
-        executor.execute( new Runnable() {
-            public void run() {
-                final List<InboxEntry> es = ( (InboxServiceImpl) inboxService ).loadIncoming( MAIL_MAN );
+        getExecutor().execute( new AsyncMailboxProcessOutgoing() {
+            @Override
+            public String getDescription() {
+                return "Mailbox Outgoing Processing";
+            }
+
+            @Override
+            public void execute( InboxBackend inboxBackend ) {
+                final List<InboxEntry> es = inboxBackend.loadIncoming( MAIL_MAN );
                 log.debug( "Outgoing messages size " + es.size() );
                 //wipe out inbox for mailman here...
 
                 String[] userList = listUsers();
-                System.out.println( "userServices:" + userList.length );
+                log.debug( "userServices:" + userList.length );
                 for ( String toUser : userList ) {
-                    System.out.println( "userServices:" + toUser );
+                    log.debug( "userServices:" + toUser );
                     log.debug( "Processing any inbound messages for " + toUser );
                     if ( toUser.equals( MAIL_MAN ) ) {
                         return;
                     }
 
-                    Set<String> recentEdited = makeSetOf( ( (InboxServiceImpl) inboxService ).loadRecentEdited( toUser ) );
+                    final Set<String> recentEdited = makeSetOf( inboxBackend.loadRecentEdited( toUser ) );
                     for ( InboxEntry e : es ) {
                         //the user who edited the item wont receive a message in inbox.
-                        if ( !e.from.equals( toUser ) && recentEdited.contains( e.itemPath ) ) {
-                            ( (InboxServiceImpl) inboxService ).addToIncoming( e.itemPath, e.note, e.from, toUser );
+                        if ( !e.getFrom().equals( toUser ) && recentEdited.contains( e.getItemPath() ) ) {
+                            inboxBackend.addToIncoming( e.getItemPath(), e.getNote(), e.getFrom(), toUser );
                         }
                     }
                 }
             }
         } );
+    }
 
+    private synchronized MailboxProcessOutgoingExecutorManager getExecutor() {
+        if ( executorManager == null ) {
+            MailboxProcessOutgoingExecutorManager _executorManager = null;
+            try {
+                _executorManager = InitialContext.doLookup( "java:module/MailboxProcessOutgoingExecutorManager" );
+            } catch ( final Exception ignored ) {
+            }
+
+            if ( _executorManager == null ) {
+                executorManager = new MailboxProcessOutgoingExecutorManager();
+                executorManager.setInboxBackend( inboxBackend );
+            } else {
+                executorManager = _executorManager;
+            }
+        }
+
+        return executorManager;
     }
 
     private Set<String> makeSetOf( List<InboxEntry> inboxEntries ) {
-        Set<String> entries = new HashSet<String>();
+        final Set<String> entries = new HashSet<String>();
         for ( InboxEntry e : inboxEntries ) {
-            entries.add( e.itemPath );
+            entries.add( e.getItemPath() );
         }
         return entries;
     }
 
     public String[] listUsers() {
-        //TODO: a temporary hack to retrieve user list. Please refactor later.
-        List<String> userList = new ArrayList<String>();
-        org.kie.commons.java.nio.file.Path userRoot = bootstrapRoot.resolve( "/.metadata/.users/" );
-        final Iterator<org.kie.commons.java.nio.file.Path> userIterator = userRoot.iterator();
-        if ( userIterator.hasNext() ) {
-            org.kie.commons.java.nio.file.Path userDir = userIterator.next();
-            userList.add( userDir.getFileName().toString() );
+        //TODO: a temporary hack to retrieve user list. Root dirs are branches and every user has it's own branch
+        final List<String> userList = new ArrayList<String>();
+
+        for ( final Path path : bootstrapFS.getRootDirectories() ) {
+            final String value = path.toUri().getUserInfo();
+            if ( value.endsWith( "-uf-user" ) ) {
+                userList.add( value.substring( 0, value.indexOf( "-uf-user" ) ) );
+            }
         }
 
-        String[] result = new String[ userList.size() ];
-        return userList.toArray( result );
+        return userList.toArray( new String[ userList.size() ] );
     }
 
 }

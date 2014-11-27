@@ -16,7 +16,8 @@
 
 package org.guvnor.common.services.project.builder.service;
 
-import java.util.Set;
+import java.util.Collection;
+import java.util.Map;
 
 import org.guvnor.common.services.project.builder.model.BuildResults;
 import org.guvnor.common.services.project.builder.model.IncrementalBuildResults;
@@ -39,6 +40,13 @@ public interface BuildService {
      * @param project
      */
     BuildResults buildAndDeploy( final Project project );
+
+    /**
+     * Full build with deployment with ability to suppress any post operations handlers to ensure
+     * that only build and deploy was invoked
+     * @param project
+     */
+    BuildResults buildAndDeploy( final Project project, boolean suppressHandlers );
 
     /**
      * Check whether a Project has been built
@@ -71,6 +79,6 @@ public interface BuildService {
      * @param changes
      */
     IncrementalBuildResults applyBatchResourceChanges( final Project project,
-                                                       final Set<ResourceChange> changes );
+                                                       final Map<Path, Collection<ResourceChange>> changes );
 
 }

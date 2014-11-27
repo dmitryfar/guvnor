@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
-import org.kie.commons.validation.PortablePreconditions;
+import org.uberfire.commons.validation.PortablePreconditions;
 import org.uberfire.backend.vfs.Path;
 import org.uberfire.security.authz.RuntimeResource;
 
@@ -30,33 +30,36 @@ import org.uberfire.security.authz.RuntimeResource;
 @Portable
 public class Project implements RuntimeResource {
 
-    private Path rootPath;
-    private Path pomXMLPath;
-    private Path kmoduleXMLPath;
-    private Path importsPath;
-    private String projectName;
+    protected Path rootPath;
+    protected Path pomXMLPath;
+    protected String projectName;
+    protected Collection<String> modules = new ArrayList<String>();
 
     private Collection<String> roles = new ArrayList<String>();
 
+    // only loaded by ProjectService.getProjects()
+    private POM pom;
+    
     public Project() {
         //For Errai-marshalling
     }
 
     public Project( final Path rootPath,
                     final Path pomXMLPath,
-                    final Path kmoduleXMLPath,
-                    final Path importsPath,
                     final String projectName ) {
         this.rootPath = PortablePreconditions.checkNotNull( "rootPath",
                                                             rootPath );
         this.pomXMLPath = PortablePreconditions.checkNotNull( "pomXMLPath",
                                                               pomXMLPath );
-        this.kmoduleXMLPath = PortablePreconditions.checkNotNull( "kmoduleXMLPath",
-                                                                  kmoduleXMLPath );
-        this.importsPath = PortablePreconditions.checkNotNull( "importsPath",
-                                                               importsPath );
         this.projectName = PortablePreconditions.checkNotNull( "projectName",
                                                                projectName );
+    }
+    
+    public Project( final Path rootPath,
+                    final Path pomXMLPath,
+                    final String projectName, Collection<String> modules  ) {
+        this(rootPath, pomXMLPath, projectName);
+        this.modules = modules;
     }
 
     public Path getRootPath() {
@@ -67,13 +70,6 @@ public class Project implements RuntimeResource {
         return this.pomXMLPath;
     }
 
-    public Path getKModuleXMLPath() {
-        return this.kmoduleXMLPath;
-    }
-
-    public Path getImportsPath() {
-        return this.importsPath;
-    }
 
     public String getProjectName() {
         return this.projectName;
@@ -94,44 +90,57 @@ public class Project implements RuntimeResource {
         return Collections.emptySet();
     }
 
-    @Override
-    public boolean equals( Object o ) {
-        if ( this == o ) {
-            return true;
-        }
-        if ( !( o instanceof Project ) ) {
-            return false;
-        }
+    public Collection<String> getModules() {
+      return modules;
+    }
+    
+    public POM getPom() {
+        return pom;
+    }
 
-        Project project = (Project) o;
-
-        if ( !rootPath.equals( project.rootPath ) ) {
-            return false;
-        }
-        if ( !pomXMLPath.equals( project.pomXMLPath ) ) {
-            return false;
-        }
-        if ( !kmoduleXMLPath.equals( project.kmoduleXMLPath ) ) {
-            return false;
-        }
-        if ( !importsPath.equals( project.importsPath ) ) {
-            return false;
-        }
-        if ( !projectName.equals( project.projectName ) ) {
-            return false;
-        }
-
-        return true;
+    public void setPom( POM pom ) {
+        this.pom = pom;
     }
 
     @Override
     public int hashCode() {
-        int result = rootPath.hashCode();
-        result = 31 * result + pomXMLPath.hashCode();
-        result = 31 * result + kmoduleXMLPath.hashCode();
-        result = 31 * result + importsPath.hashCode();
-        result = 31 * result + projectName.hashCode();
-        return result;
+      int hash = 5;
+      hash = 17 * hash + (this.rootPath != null ? this.rootPath.hashCode() : 0);
+      hash = 17 * hash + (this.pomXMLPath != null ? this.pomXMLPath.hashCode() : 0);
+      hash = 17 * hash + (this.projectName != null ? this.projectName.hashCode() : 0);
+      hash = 17 * hash + (this.modules != null ? this.modules.hashCode() : 0);
+      hash = 17 * hash + (this.roles != null ? this.roles.hashCode() : 0);
+      return hash;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == null) {
+        return false;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+      final Project other = (Project) obj;
+      if (this.rootPath != other.rootPath && (this.rootPath == null || !this.rootPath.equals(other.rootPath))) {
+        return false;
+      }
+      if (this.pomXMLPath != other.pomXMLPath && (this.pomXMLPath == null || !this.pomXMLPath.equals(other.pomXMLPath))) {
+        return false;
+      }
+      if ((this.projectName == null) ? (other.projectName != null) : !this.projectName.equals(other.projectName)) {
+        return false;
+      }
+      if (this.modules != other.modules && (this.modules == null || !this.modules.equals(other.modules))) {
+        return false;
+      }
+      if (this.roles != other.roles && (this.roles == null || !this.roles.equals(other.roles))) {
+        return false;
+      }
+      return true;
+    }
+
+
+
 
 }

@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.guvnor</groupId>
     <artifactId>guvnor</artifactId>
-    <version>6.1.0-SNAPSHOT</version>
+    <version>6.3.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>guvnor-project</artifactId>
@@ -33,5 +33,6 @@
     <module>guvnor-project-api</module>
     <module>guvnor-project-backend</module>
     <module>guvnor-project-builder</module>
+    <module>guvnor-project-client</module>
   </modules>
 </project>

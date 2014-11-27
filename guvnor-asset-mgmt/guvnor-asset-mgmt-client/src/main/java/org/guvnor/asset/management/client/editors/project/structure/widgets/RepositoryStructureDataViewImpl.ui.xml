@@ -1,0 +1,42 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+             xmlns:b='urn:import:com.github.gwtbootstrap.client.ui'
+             xmlns:g="urn:import:com.google.gwt.user.client.ui">
+
+  <ui:with field="i18n"
+           type="org.guvnor.asset.management.client.i18n.Constants"/>
+
+  <b:Well>
+    <b:Fieldset>
+      <b:Legend>
+        <small>
+          <b:Label ui:field="projectTypeLabel"/>
+        </small>
+      </b:Legend>
+
+      <b:Controls>
+        <b:HelpInline ui:field="groupIdTextBoxHelpInline"/>  
+        <b:Label  ui:field="groupIdTextBox" />
+        
+      </b:Controls>
+
+      <b:Controls>
+          <b:HelpInline ui:field="artifactIdTextBoxHelpInline"/>
+        <b:Label  ui:field="artifactIdTextBox" />
+        
+      </b:Controls>
+
+      
+      <b:Controls>
+          <b:HelpInline ui:field="versionTextBoxHelpInline"/>
+        <b:Label  ui:field="versionTextBox" />
+        
+      </b:Controls>
+
+
+    </b:Fieldset>
+
+
+  </b:Well>
+
+</ui:UiBinder>

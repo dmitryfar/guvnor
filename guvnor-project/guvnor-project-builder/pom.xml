@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.guvnor</groupId>
     <artifactId>guvnor-project</artifactId>
-    <version>6.1.0-SNAPSHOT</version>
+    <version>6.3.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>guvnor-project-builder</artifactId>
@@ -33,10 +33,9 @@
   <description>Guvnor - Project Builder</description>
 
   <dependencies>
-
     <dependency>
       <groupId>org.guvnor</groupId>
-      <artifactId>guvnor-services-backend</artifactId>
+      <artifactId>guvnor-project-api</artifactId>
     </dependency>
 
     <dependency>
@@ -50,44 +49,36 @@
     </dependency>
 
     <dependency>
-      <groupId>org.kie</groupId>
-      <artifactId>kie-api</artifactId>
+      <groupId>org.guvnor</groupId>
+      <artifactId>guvnor-services-api</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.guvnor</groupId>
+      <artifactId>guvnor-services-backend</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-commons</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+
 
     <!-- Needed by kie-api if KieModules are to be built -->
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kie.commons</groupId>
-      <artifactId>kie-commons-io</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kie.commons</groupId>
-      <artifactId>kie-nio2-api</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kie.commons</groupId>
-      <artifactId>kie-nio2-fs</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.kie</groupId>
-      <artifactId>kie-ci</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.drools</groupId>
-      <artifactId>drools-compiler</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.drools</groupId>
-      <artifactId>drools-workbench-models-datamodel-api</artifactId>
     </dependency>
 
     <dependency>
@@ -109,14 +100,38 @@
     </dependency>
 
     <dependency>
-      <groupId>org.kie.commons</groupId>
-      <artifactId>kie-nio2-jgit</artifactId>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-nio2-fs</artifactId>
       <scope>test</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.drools</groupId>
-      <artifactId>drools-decisiontables</artifactId>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-nio2-jgit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.spec.javax.servlet</groupId>
+      <artifactId>jboss-servlet-api_3.0_spec</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-http</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.guvnor</groupId>
+      <artifactId>guvnor-structure-backend</artifactId>
       <scope>test</scope>
     </dependency>
 
